@@ -138,6 +138,16 @@ export class AppComponent implements OnInit, OnDestroy {
         this.startVuMeterLoop();
       }
     });
+
+    // Effect to handle color change in night mode
+    effect(() => {
+      if (this.isNightMode()) {
+        const nightModeRed = '#ff453a';
+        if (this.brushColor() !== nightModeRed) {
+          this.handleColorChange(nightModeRed);
+        }
+      }
+    });
   }
 
   ngOnInit() {
@@ -209,7 +219,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   toggleOfflineMode(event: Event) {
     const isChecked = (event.target as HTMLInputElement).checked;
-    this.isOfflineMode.set(isChecked);
+    this.isOfflineMode.set(!isChecked);
   }
 
   toggleNightMode(event: Event) {

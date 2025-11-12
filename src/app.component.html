@@ -38,12 +38,12 @@
       <!-- Top Controls & Screen Area -->
       <div class="flex-grow flex flex-col gap-4">
         <!-- Control Panel -->
-        <div class="flex-shrink-0 flex items-center justify-between gap-4 bg-zinc-900/50 p-2 rounded-md border border-black/30">
+        <div class="flex-shrink-0 flex items-center justify-between gap-4 bg-black/30 p-2 rounded">
           <!-- On-Air Toggle -->
           <div class="flex items-center gap-3">
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" [checked]="isOfflineMode()" (change)="toggleOfflineMode($event)">
-              <div class="w-14 h-7 bg-zinc-700 rounded-sm peer-focus:outline-none ring-2 ring-offset-2 ring-offset-zinc-800 ring-transparent peer-focus:ring-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-900 after:border-2 after:rounded-sm after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600 peer-checked:after:translate-x-full"></div>
+              <input type="checkbox" class="sr-only peer" [checked]="!isOfflineMode()" (change)="toggleOfflineMode($event)">
+              <div class="w-10 h-5 bg-zinc-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.125rem] after:left-[0.125rem] after:bg-zinc-300 after:border-zinc-900 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
             </label>
             <span class="text-sm font-bold text-amber-200">{{ isOfflineMode() ? 'OFF-AIR' : 'ON-AIR' }}</span>
           </div>
@@ -81,7 +81,7 @@
         </div>
 
         <!-- "Screen" Bezel for Whiteboard -->
-        <div class="flex-grow relative bg-black/50 rounded-md p-2 border border-black/30">
+        <div class="flex-grow relative bg-black/30 rounded p-2">
           <div class="relative w-full h-full overflow-hidden rounded-sm">
             <app-whiteboard 
                 class="absolute inset-0 w-full h-full z-0"
@@ -103,6 +103,7 @@
       <!-- Paint Tools Module -->
       <div class="flex-shrink-0 z-10">
         <app-paint-tools
+            [isNightMode]="isNightMode()"
             [color]="brushColor()"
             [size]="brushSize()"
             (colorChange)="handleColorChange($event)"
@@ -112,7 +113,7 @@
     </main>
 
     <!-- Bottom Controls Container -->
-    <footer class="flex-shrink-0 grid grid-cols-3 items-stretch justify-between gap-2 sm:gap-4 bg-zinc-900/50 p-2 rounded-md border border-black/30">
+    <footer class="flex-shrink-0 grid grid-cols-3 items-stretch justify-between gap-2 sm:gap-4 bg-black/30 p-2 rounded">
       <!-- Mic Gain -->
       <div class="flex flex-col items-center justify-end gap-2">
         <div class="vu-meter mb-1">

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, output, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,10 +6,10 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 p-2 bg-zinc-900/50 rounded-md border border-black/30">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 p-2 bg-black/30 rounded">
       <!-- Colors -->
       <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-        @for (c of colors; track c) {
+        @for (c of colors(); track c) {
           <button
             (click)="selectColor(c)"
             class="w-8 h-8 rounded-md transition-all ring-offset-2 ring-offset-zinc-800 active:scale-90 border-2 border-transparent"
@@ -40,13 +40,18 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaintToolsComponent {
-  color = input<string>('#FFFFFF');
-  size = input<number>(4);
+  color = input('#FFFFFF');
+  size = input(4);
+  isNightMode = input(false);
 
   colorChange = output<string>();
   sizeChange = output<number>();
 
-  colors = ['#FFFFFF', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#0a84ff', '#5e5ce6', '#bf5af2'];
+  private readonly defaultColors = ['#FFFFFF', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#0a84ff', '#5e5ce6', '#bf5af2'];
+  private readonly nightModeColors = ['#ff453a'];
+
+  colors = computed(() => this.isNightMode() ? this.nightModeColors : this.defaultColors);
+  
   brushSizes = [2, 4, 8];
 
   selectColor(color: string) {
