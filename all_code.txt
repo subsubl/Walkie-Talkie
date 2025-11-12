@@ -1,0 +1,1396 @@
+--- START OF FILE index.tsx ---
+
+import '@angular/compiler';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideZonelessChangeDetection } from '@angular/core';
+
+import { AppComponent } from './src/app.component';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideZonelessChangeDetection()
+  ]
+}).catch(err => console.error(err));
+
+// AI Studio always uses an `index.tsx` file for all project types.
+--- END OF FILE index.tsx ---
+
+--- START OF FILE metadata.json ---
+
+{
+  "name": "Angular Walkie-Talkie",
+  "description": "A real-time voice communication and collaborative whiteboard application built with Angular. Features push-to-talk, an audio visualizer, and a shared drawing canvas.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
+--- END OF FILE metadata.json ---
+
+--- START OF FILE index.html ---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Angular Walkie-Talkie</title>
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://aistudiocdn.com/rxjs@7.8.2?conditions=es2015",
+    "rxjs/operators": "https://aistudiocdn.com/rxjs@7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://aistudiocdn.com/rxjs@7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://aistudiocdn.com/rxjs@7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://aistudiocdn.com/rxjs@7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://aistudiocdn.com/rxjs@7.8.2/fetch?conditions=es2015",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@20.3.10?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@20.3.10?external=rxjs",
+    "@angular/core": "https://next.esm.sh/@angular/core@20.3.10?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@20.3.10?external=rxjs"
+  }
+}
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* --- EMBEDDED STYLES (NO EXTERNAL REQUESTS) --- */
+  /* Custom Global Styles */
+  html {
+    font-size: clamp(12px, 1.25vw, 20px);
+  }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  
+  /* Custom App Styles */
+  /* Custom styles for LED status indicator */
+  .led-green { background-color: #22c55e; box-shadow: 0 0 0.75rem 0.1875rem #22c55e80; }
+  .led-amber { background-color: #f59e0b; box-shadow: 0 0 0.75rem 0.1875rem #f59e0b80; }
+  .led-blue { background-color: #0ea5e9; box-shadow: 0 0 0.75rem 0.1875rem #0ea5e980; }
+  .led-off { background-color: #52525b; box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.7); }
+  /* Custom styles for Analog VU Meter */
+  .vu-meter { width: 6rem; height: 3rem; background: conic-gradient(from 135deg at 50% 100%, #166534 0%, #22c55e 15%, #facc15 50%, #ef4444 85%, #b91c1c 100%); border-top-left-radius: 3rem; border-top-right-radius: 3rem; position: relative; border-style: solid; border-color: #52525b; border-width: 0.125rem; border-bottom-width: 0; box-shadow: inset 0 0.125rem 0.25rem rgba(0,0,0,0.5); overflow: hidden; }
+  .vu-meter::before { content: ''; position: absolute; z-index: 1; background: #3f3f46; bottom: 0; left: 0.5rem; right: 0.5rem; top: 0.5rem; border-top-left-radius: 2.5rem; border-top-right-radius: 2.5rem; }
+  .vu-meter-needle { position: absolute; bottom: -0.125rem; left: 50%; margin-left: -0.0625rem; width: 0.125rem; height: 2.75rem; background-color: #fca5a5; transform-origin: bottom center; transition: transform 75ms linear; border-radius: 0.125rem 0.125rem 0 0; z-index: 3; box-shadow: 0 0 0.5rem #ef4444; }
+  .vu-meter::after { content: ''; position: absolute; bottom: -0.3125rem; left: 50%; transform: translateX(-50%); width: 0.625rem; height: 0.625rem; background: #18181b; border-radius: 50%; border: 0.0625rem solid #71717a; z-index: 2; }
+  /* Custom styles for range inputs */
+  input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 100%; }
+  input[type="range"]:focus { outline: none; }
+  input[type="range"]::-webkit-slider-runnable-track { background: #18181b; height: 0.75rem; border-radius: 0.125rem; border: 0.0625rem solid #000; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -0.375rem; background-color: #a1a1aa; height: 1.375rem; width: 0.75rem; border-radius: 0.1875rem; border: 0.125rem solid #52525b; transition: background-color 0.15s ease-in-out; }
+  input[type="range"]:focus::-webkit-slider-thumb { outline-style: solid; outline-color: #f59e0b; outline-width: 0.1875rem; outline-offset: 0.125rem; }
+  input[type="range"]:hover::-webkit-slider-thumb { background-color: #d4d4d8; }
+  input[type="range"]::-moz-range-track { background: #18181b; height: 0.75rem; border-radius: 0.125rem; border: 0.0625rem solid #000; }
+  input[type="range"]::-moz-range-thumb { border: none; background-color: #a1a1aa; height: 1.375rem; width: 0.75rem; border-radius: 0.1875rem; border: 0.125rem solid #52525b; transition: background-color 0.15s ease-in-out; }
+  input[type="range"]:focus::-moz-range-thumb { outline-style: solid; outline-color: #f59e0b; outline-width: 0.1875rem; outline-offset: 0.125rem; }
+  input[type="range"]:hover::-moz-range-thumb { background-color: #d4d4d8; }
+  /* Night Mode */
+  .night-mode.bg-zinc-800 { background-color: #0c0a09; border-color: #450a0a; }
+  .night-mode .bg-black\/30 { background-color: rgba(20, 0, 0, 0.4); }
+  .night-mode .bg-zinc-900\/50 { background-color: rgba(20, 0, 0, 0.6); }
+  .night-mode .border-black\/30 { border-color: rgba(127, 29, 29, 0.5); }
+  .night-mode .text-amber-100, .night-mode .text-amber-200, .night-mode .text-red-300 { color: #ef4444; }
+  .night-mode .text-amber-300\/80 { color: rgba(248, 113, 113, 0.8); }
+  .night-mode .text-amber-400\/70 { color: rgba(220, 38, 38, 0.7); }
+  .night-mode .text-amber-400, .night-mode .text-green-400 { color: #f87171; }
+  .night-mode .led-green { background-color: #dc2626; box-shadow: 0 0 0.75rem 0.1875rem #dc262680; }
+  .night-mode .led-amber { background-color: #b91c1c; box-shadow: 0 0 0.75rem 0.1875rem #b91c1c80; }
+  .night-mode .led-blue { background-color: #f87171; box-shadow: 0 0 0.75rem 0.1875rem #f8717180; }
+  .night-mode .led-off { background-color: #450a0a; box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.9); }
+  .night-mode .bg-zinc-700 { background-color: #3f0909; }
+  .night-mode .enabled\:hover\:bg-zinc-600:enabled:hover { background-color: #5b0d0d; }
+  .night-mode .ring-offset-zinc-800 { --tw-ring-offset-color: #0c0a09; }
+  .night-mode .after\:bg-zinc-300::after { background-color: #7f1d1d; }
+  .night-mode .after\:border-zinc-900::after { border-color: #450a0a; }
+  .night-mode .peer-checked\:bg-green-600:checked + div, .night-mode .peer-checked\:bg-red-700:checked + div { background-color: #b91c1c; }
+  .night-mode .peer-focus\:ring-amber-500:focus + div, .night-mode .peer-focus\:ring-amber-500\/50:focus { --tw-ring-color: #dc2626; }
+  .night-mode .border-red-900 { border-color: #7f1d1d; }
+  .night-mode .hover\:bg-red-800:hover { background-color: #991b1b; }
+  .night-mode .bg-zinc-900\/80 { background-color: rgba(0, 0, 0, 0.85); }
+  .night-mode .vu-meter { background: conic-gradient(from 135deg at 50% 100%, #450a0a 0%, #991b1b 15%, #ef4444 50%, #fca5a5 85%, #fee2e2 100%); border-color: #450a0a; box-shadow: inset 0 0.125rem 0.25rem rgba(0,0,0,0.8); }
+  .night-mode .vu-meter::before { background: #0c0a09; }
+  .night-mode .vu-meter::after { background: #000; border-color: #7f1d1d; }
+  .night-mode #talkButton { border-color: #450a0a; }
+  .night-mode #talkButton.bg-red-700 { background-color: #dc2626; }
+  .night-mode #talkButton.border-red-900 { border-color: #7f1d1d; }
+  .night-mode input[type="range"]::-webkit-slider-runnable-track { background: #000; border-color: #450a0a; }
+  .night-mode input[type="range"]::-webkit-slider-thumb { background-color: #b91c1c; border-color: #450a0a; }
+  .night-mode input[type="range"]:hover::-webkit-slider-thumb { background-color: #dc2626; }
+  .night-mode input[type="range"]:focus::-webkit-slider-thumb { outline-color: #f87171; }
+  .night-mode input[type="range"]::-moz-range-track { background: #000; border-color: #450a0a; }
+  .night-mode input[type="range"]::-moz-range-thumb { background-color: #b91c1c; border-color: #450a0a; }
+  .night-mode input[type="range"]:hover::-moz-range-thumb { background-color: #dc2626; }
+  .night-mode input[type="range"]:focus::-moz-range-thumb { outline-color: #f87171; }
+  .night-mode .ring-amber-400 { --tw-ring-color: #ef4444 !important; }
+  .night-mode .bg-amber-500 { background-color: #ef4444; }
+  .night-mode .text-zinc-900 { color: #fef2f2; }
+  .night-mode .hover\:bg-zinc-600:hover { background-color: #5b0d0d; }
+</style>
+</head>
+<body class="bg-zinc-900 text-amber-100">
+  <app-root></app-root>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
+--- END OF FILE index.html ---
+
+--- START OF FILE src/app.component.ts ---
+
+import { Component, ChangeDetectionStrategy, signal, effect, ElementRef, inject, OnInit, OnDestroy, WritableSignal, computed, PLATFORM_ID, viewChild } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+
+import { WhiteboardComponent } from './components/whiteboard/whiteboard.component';
+import { PaintToolsComponent } from './components/paint-tools/paint-tools.component';
+import { AudioService } from './services/audio.service';
+import { SpixiService, SpixiNetworkData } from './services/spixi.service';
+import { WhiteboardService } from './services/whiteboard.service';
+
+// Declare Spixi SDK global to make it accessible
+declare var SpixiAppSdk: any;
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [CommonModule, WhiteboardComponent, PaintToolsComponent]
+})
+export class AppComponent implements OnInit, OnDestroy {
+  audioService = inject(AudioService);
+  spixiService = inject(SpixiService);
+  whiteboardService = inject(WhiteboardService);
+
+  isOfflineMode = signal(false);
+  isNightMode = signal(false);
+  appStatus = signal('Initializing...');
+  isRecording = signal(false);
+  isAudioInitialized = signal(false);
+  isPlayingAudio = signal(false);
+  isOtherUserPresent = signal(false);
+  isSyncingWhiteboard = signal(false);
+  talkButtonText = signal('PTT');
+  
+  brushColor = signal('#FFFFFF');
+  brushSize = signal(4);
+  isErasing = signal(false);
+  micVolume = signal(1); // Gain value (e.g., 0-1.5)
+  outputVolume = signal(1); // Gain value (e.g., 0-1)
+
+  // VU Meter Signals
+  micVudB = signal(-60);
+  outputVudB = signal(-60);
+
+  whiteboardComponent = viewChild.required(WhiteboardComponent);
+  private whiteboardHistoryRequested = false;
+
+  isWhiteboardDisabled = computed(() => this.isSyncingWhiteboard() || (!this.isOfflineMode() && !this.isOtherUserPresent()));
+  connectionStatus = computed(() => this.isOfflineMode() ? 'OFF-AIR' : 'ON-AIR');
+  connectionStatusColor = computed(() => this.isOfflineMode() ? 'text-amber-400' : 'text-green-400');
+  ledStatusClass = computed(() => {
+    if (this.isOfflineMode()) {
+        return 'led-amber';
+    }
+    if (this.isOtherUserPresent()) {
+        return 'led-green';
+    }
+    return 'led-off';
+  });
+  playbackLedClass = computed(() => {
+    return this.isPlayingAudio() ? 'led-blue' : 'led-off';
+  });
+
+  // VU Meter Needle Rotation
+  private vuMeterRotation = (dbSignal: WritableSignal<number>) => computed(() => {
+    const db = dbSignal();
+    const clampedDb = Math.max(-60, Math.min(db, 0));
+    // Map -60dB to -45deg, 0dB to 45deg
+    const rotation = (clampedDb + 60) / 60 * 90 - 45;
+    return `rotate(${rotation}deg)`;
+  });
+  micVuRotation = this.vuMeterRotation(this.micVudB);
+  outputVuRotation = this.vuMeterRotation(this.outputVudB);
+
+  private vuMeterAnimationId: number | null = null;
+  private offlineAudioBuffer: string[] = [];
+  private presenceInterval: any;
+  private presenceTimeout: any;
+
+  private platformId = inject(PLATFORM_ID);
+
+  constructor() {
+    effect(() => {
+      const initData = this.spixiService.initData();
+      if (initData) {
+        this.appStatus.set('Ready');
+        // If we are not the first person in the room, request whiteboard history
+        if (initData.userAddresses.length > 1 && !this.whiteboardHistoryRequested) {
+          this.isSyncingWhiteboard.set(true);
+          this.whiteboardHistoryRequested = true;
+          this.spixiService.sendNetworkData('WHITEBOARD:GET_HISTORY');
+          
+          // Failsafe timeout in case no one responds
+          setTimeout(() => {
+              if (this.isSyncingWhiteboard()) {
+                  this.isSyncingWhiteboard.set(false);
+                  console.warn('Whiteboard sync timed out.');
+              }
+          }, 5000);
+        }
+      }
+    });
+
+    effect(() => {
+        const networkData = this.spixiService.networkData();
+        if (networkData) {
+            this.handleNetworkData(networkData);
+        }
+    });
+
+    effect(() => {
+      const audioData = this.audioService.audioData();
+      if (audioData) {
+          this.handleLocalAudioData(audioData);
+      }
+    });
+
+    effect(() => {
+        const drawData = this.whiteboardService.outgoingDrawData();
+        if(drawData) {
+            if (!this.isOfflineMode()) {
+                this.spixiService.sendNetworkData(`DRAW:${drawData}`);
+            }
+        }
+    });
+
+    // Effect to update microphone gain in the service
+    effect(() => {
+      const gain = this.micVolume();
+      if (this.isAudioInitialized()) {
+        this.audioService.setMicrophoneGain(gain);
+      }
+    });
+
+    // Effect to update output volume in the service
+    effect(() => {
+      const volume = this.outputVolume();
+      if (this.isAudioInitialized()) {
+        this.audioService.setOutputVolume(volume);
+      }
+    });
+    
+    // Effect to manage presence detection when mode changes
+    effect(() => {
+      if (this.isOfflineMode()) {
+          this.stopPresencePinging();
+      } else {
+          this.startPresencePinging();
+      }
+    });
+
+    // Effect to start/stop the VU meter animation loop
+    effect(() => {
+      if (this.isRecording() || this.isPlayingAudio()) {
+        this.startVuMeterLoop();
+      }
+    });
+
+    // Effect to handle color change in night mode
+    effect(() => {
+      if (this.isNightMode()) {
+        const nightModeRed = '#ff453a';
+        if (this.brushColor() !== nightModeRed) {
+          this.handleColorChange(nightModeRed);
+        }
+      }
+    });
+  }
+
+  ngOnInit() {
+    this.spixiService.initialize();
+    const isTestEnv = typeof SpixiAppSdk !== 'undefined' && SpixiAppSdk._isTestEnv;
+    this.isOfflineMode.set(isTestEnv);
+  }
+
+  ngOnDestroy() {
+    if (this.vuMeterAnimationId) {
+      cancelAnimationFrame(this.vuMeterAnimationId);
+    }
+    this.stopPresencePinging();
+  }
+
+  async handleTalkPress(event: Event) {
+    event.preventDefault();
+    if (this.isRecording()) return;
+
+    if (isPlatformBrowser(this.platformId) && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
+    if (!this.isAudioInitialized()) {
+      this.talkButtonText.set('...');
+      this.appStatus.set('Requesting Mic...');
+      const success = await this.audioService.initialize();
+      this.isAudioInitialized.set(success);
+      if (!success) {
+        this.appStatus.set('Mic permission denied');
+        this.talkButtonText.set('RETRY');
+        return;
+      }
+      this.talkButtonText.set('PTT');
+      this.appStatus.set('Ready');
+    }
+
+    if (this.isOfflineMode()) {
+        this.offlineAudioBuffer = [];
+    }
+
+    this.isRecording.set(true);
+    this.appStatus.set(this.isOfflineMode() ? 'Recording...' : 'Transmitting...');
+    this.audioService.startRecording();
+  }
+
+  handleTalkRelease() {
+    if (!this.isRecording()) return;
+
+    this.isRecording.set(false);
+    this.audioService.stopRecording();
+    this.appStatus.set('Ready');
+
+    if (this.isOfflineMode() && this.offlineAudioBuffer.length > 0) {
+        this.appStatus.set('Playing Echo...');
+        this.isPlayingAudio.set(true);
+        const allChunks = [...this.offlineAudioBuffer];
+        this.offlineAudioBuffer = [];
+        this.audioService.playPcmChunks(allChunks).then(() => {
+            this.appStatus.set('Ready');
+            this.isPlayingAudio.set(false);
+        }).catch(err => {
+            console.error('Echo playback failed:', err);
+            this.appStatus.set('Echo Error');
+            this.isPlayingAudio.set(false);
+        });
+    }
+  }
+
+  toggleOfflineMode(event: Event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    this.isOfflineMode.set(!isChecked);
+  }
+
+  toggleNightMode(event: Event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    this.isNightMode.set(isChecked);
+  }
+
+  clearWhiteboard() {
+    this.whiteboardService.clear();
+  }
+
+  undoLastAction() {
+    this.whiteboardService.undo();
+  }
+  
+  redoLastAction() {
+    this.whiteboardService.redo();
+  }
+
+  handleColorChange(color: string) {
+    this.brushColor.set(color);
+    this.isErasing.set(false);
+  }
+
+  handleSizeChange(size: number) {
+    this.brushSize.set(size);
+  }
+
+  handleEraserSelect() {
+    this.isErasing.set(true);
+  }
+
+  handleMicVolumeChange(event: Event) {
+    const sliderValue = parseFloat((event.target as HTMLInputElement).value);
+    this.micVolume.set(sliderValue / 100);
+  }
+
+  handleOutputVolumeChange(event: Event) {
+    const sliderValue = parseFloat((event.target as HTMLInputElement).value);
+    this.outputVolume.set(sliderValue / 100);
+  }
+
+  private handleNetworkData(networkData: SpixiNetworkData) {
+    const { data } = networkData;
+    if (data.startsWith('DRAW:')) {
+      this.whiteboardService.processIncomingData(data.substring(5));
+    } else if (data.startsWith('AUDIO:')) {
+      this.appStatus.set('Receiving...');
+      this.isPlayingAudio.set(true);
+      this.audioService.playPcmChunks([data.substring(6)]).then(() => {
+        this.appStatus.set('Ready');
+        this.isPlayingAudio.set(false);
+      }).catch(err => {
+        console.error("Failed to process incoming audio", err);
+        this.appStatus.set('Playback Error');
+        this.isPlayingAudio.set(false);
+      });
+    } else if (data === 'PRESENCE:PING') {
+        this.spixiService.sendNetworkData('PRESENCE:PONG');
+    } else if (data === 'PRESENCE:PONG') {
+        this.isOtherUserPresent.set(true);
+        if (this.presenceTimeout) {
+            clearTimeout(this.presenceTimeout);
+        }
+        this.presenceTimeout = setTimeout(() => {
+            this.isOtherUserPresent.set(false);
+        }, 5000); // Assume offline if no pong for 5 seconds
+    } else if (data === 'WHITEBOARD:GET_HISTORY') {
+        const historyState = this.whiteboardComponent().getHistoryState();
+        if (historyState) {
+            this.spixiService.sendNetworkData(`WHITEBOARD:HISTORY:${historyState}`);
+        }
+    } else if (data.startsWith('WHITEBOARD:HISTORY:')) {
+        const historyState = data.substring(19);
+        this.whiteboardComponent().loadHistoryState(historyState);
+        this.isSyncingWhiteboard.set(false);
+    }
+  }
+
+    private handleLocalAudioData(audioData: string) {
+        if (this.isOfflineMode()) {
+            this.offlineAudioBuffer.push(audioData);
+        } else {
+            this.spixiService.sendNetworkData(`AUDIO:${audioData}`);
+        }
+    }
+
+  private startVuMeterLoop() {
+    if (this.vuMeterAnimationId) return;
+    this.updateVuMeters();
+  }
+
+  private updateVuMeters = () => {
+    if (!this.isRecording() && !this.isPlayingAudio()) {
+      this.micVudB.set(-60);
+      this.outputVudB.set(-60);
+      this.vuMeterAnimationId = null;
+      return;
+    }
+
+    if (this.isRecording()) {
+      this.micVudB.set(this.calculateDBFS(this.audioService.micAnalyserNode()));
+    } else {
+      this.micVudB.set(-60);
+    }
+
+    if (this.isPlayingAudio()) {
+      this.outputVudB.set(this.calculateDBFS(this.audioService.outputAnalyserNode()));
+    } else {
+      this.outputVudB.set(-60);
+    }
+
+    this.vuMeterAnimationId = requestAnimationFrame(this.updateVuMeters);
+  }
+
+  private calculateDBFS(analyserNode: AnalyserNode | null): number {
+    if (!analyserNode) return -60;
+
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyserNode.getByteTimeDomainData(dataArray);
+
+    let sumSquares = 0.0;
+    for (const amplitude of dataArray) {
+      const floatValue = (amplitude / 128.0) - 1.0;
+      sumSquares += floatValue * floatValue;
+    }
+    const rms = Math.sqrt(sumSquares / bufferLength);
+
+    if (rms === 0) return -60;
+
+    const db = 20 * Math.log10(rms);
+    return Math.max(-60, db);
+  }
+
+  private startPresencePinging() {
+    this.stopPresencePinging();
+    if (!this.isOfflineMode()) {
+        this.presenceInterval = setInterval(() => {
+            this.spixiService.sendNetworkData('PRESENCE:PING');
+        }, 3000);
+    }
+  }
+
+  private stopPresencePinging() {
+      if (this.presenceInterval) {
+          clearInterval(this.presenceInterval);
+          this.presenceInterval = null;
+      }
+      if(this.presenceTimeout) {
+          clearTimeout(this.presenceTimeout);
+          this.presenceTimeout = null;
+      }
+      this.isOtherUserPresent.set(false);
+  }
+}
+--- END OF FILE src/app.component.ts ---
+
+--- START OF FILE src/app.component.html ---
+
+<div class="flex items-center justify-center h-screen w-screen p-2 sm:p-4 bg-zinc-900 font-sans">
+  <!-- Radio Console -->
+  <div class="w-full max-w-lg h-full bg-zinc-800 rounded-lg shadow-2xl border-2 border-black/50 p-4 flex flex-col gap-4 overflow-hidden" [class.night-mode]="isNightMode()">
+    
+    <!-- Header Panel -->
+    <header class="flex-shrink-0 grid grid-cols-4 items-center gap-4 text-center bg-black/30 p-2 rounded">
+      <!-- Status -->
+      <div class="text-left">
+        <div class="text-xs text-amber-400/70 tracking-widest">STATUS</div>
+        <div id="appStatus" class="font-bold text-amber-200 truncate">{{ appStatus() }}</div>
+      </div>
+      
+      <!-- Peer LED -->
+      <div class="flex flex-col items-center">
+        <div class="text-xs text-amber-400/70 tracking-widest">PEER</div>
+        <div class="w-4 h-4 rounded-full mt-1 border-2 border-black/50 transition-all duration-300"
+             [class]="ledStatusClass()">
+        </div>
+      </div>
+
+      <!-- Playback LED -->
+      <div class="flex flex-col items-center">
+        <div class="text-xs text-amber-400/70 tracking-widest">RX</div>
+        <div class="w-4 h-4 rounded-full mt-1 border-2 border-black/50 transition-all duration-300"
+             [class]="playbackLedClass()">
+        </div>
+      </div>
+
+      <!-- Connection -->
+      <div class="text-right">
+        <div class="text-xs text-amber-400/70 tracking-widest">CONNECTION</div>
+        <div id="connectionStatus" class="font-bold" [class]="connectionStatusColor()">{{ connectionStatus() }}</div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col gap-4 overflow-hidden">
+      <!-- Top Controls & Screen Area -->
+      <div class="flex-grow flex flex-col gap-4">
+        <!-- Control Panel -->
+        <div class="flex-shrink-0 flex items-center justify-between gap-4 bg-black/30 p-2 rounded">
+          <!-- On-Air Toggle -->
+          <div class="flex items-center gap-3">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" [checked]="!isOfflineMode()" (change)="toggleOfflineMode($event)">
+              <div class="w-10 h-5 bg-zinc-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.125rem] after:left-[0.125rem] after:bg-zinc-300 after:border-zinc-900 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+            <span class="text-sm font-bold text-amber-200">{{ isOfflineMode() ? 'OFF-AIR' : 'ON-AIR' }}</span>
+          </div>
+          
+          <!-- Right side Controls -->
+          <div class="flex items-center gap-4">
+              <!-- Night Mode Toggle -->
+              <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-amber-300/80 tracking-wider">NIGHT</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" class="sr-only peer" (change)="toggleNightMode($event)" [checked]="isNightMode()">
+                      <div class="w-10 h-5 bg-zinc-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.125rem] after:left-[0.125rem] after:bg-zinc-300 after:border-zinc-900 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-700"></div>
+                  </label>
+              </div>
+
+              <!-- Whiteboard Controls -->
+              <div class="flex items-center gap-2">
+                <button (click)="undoLastAction()" title="Undo" [disabled]="!whiteboardService.canUndo()" class="p-2 rounded-md bg-zinc-700 text-amber-100 enabled:hover:bg-zinc-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM5.293 8.293a1 1 0 0 1 1.414 0L10 11.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414z" clip-rule="evenodd" transform="rotate(90 10 10)"/>
+                    <path d="M8 3a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1z" transform="rotate(90 10 10)"/>
+                  </svg>
+                </button>
+                <button (click)="redoLastAction()" title="Redo" [disabled]="!whiteboardService.canRedo()" class="p-2 rounded-md bg-zinc-700 text-amber-100 enabled:hover:bg-zinc-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM5.293 8.293a1 1 0 0 1 1.414 0L10 11.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414z" clip-rule="evenodd" transform="rotate(-90 10 10)"/>
+                    <path d="M8 3a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1z" transform="rotate(-90 10 10)"/>
+                  </svg>
+                </button>
+                <button (click)="clearWhiteboard()" title="Clear Screen" class="px-3 py-1 flex items-center justify-center bg-zinc-700 border-b-4 border-red-900 rounded-md text-red-300 hover:bg-red-800 hover:border-red-900 hover:text-white transition-all active:border-b-0 active:mt-1 font-bold">
+                  CLR SCRN
+                </button>
+              </div>
+          </div>
+        </div>
+
+        <!-- "Screen" Bezel for Whiteboard -->
+        <div class="flex-grow relative bg-black/30 rounded p-2">
+          <div class="relative w-full h-full overflow-hidden rounded-sm">
+            <app-whiteboard 
+                class="absolute inset-0 w-full h-full z-0"
+                [color]="brushColor()"
+                [size]="brushSize()">
+            </app-whiteboard>
+            @if (isWhiteboardDisabled()) {
+              <div class="absolute inset-0 z-10 flex items-center justify-center rounded-sm bg-zinc-900/80 backdrop-blur-sm">
+                @if (isSyncingWhiteboard()) {
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-amber-200">SYNCING WHITEBOARD...</div>
+                    <div class="mt-1 text-xs tracking-widest text-amber-400/70">Loading existing drawing from peer.</div>
+                  </div>
+                } @else {
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-amber-200">WAITING FOR PEER...</div>
+                    <div class="mt-1 text-xs tracking-widest text-amber-400/70">Whiteboard is enabled when another user joins.</div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Paint Tools Module -->
+      <div class="flex-shrink-0 z-10">
+        <app-paint-tools
+            [isNightMode]="isNightMode()"
+            [color]="brushColor()"
+            [size]="brushSize()"
+            (colorChange)="handleColorChange($event)"
+            (sizeChange)="handleSizeChange($event)">
+        </app-paint-tools>
+      </div>
+    </main>
+
+    <!-- Bottom Controls Container -->
+    <footer class="flex-shrink-0 grid grid-cols-3 items-stretch justify-between gap-2 sm:gap-4 bg-black/30 p-2 rounded">
+      <!-- Mic Gain -->
+      <div class="flex flex-col items-center justify-end gap-2">
+        <div class="vu-meter mb-1">
+          <div class="vu-meter-needle" [style.transform]="micVuRotation()"></div>
+        </div>
+        <label class="text-xs font-bold text-amber-300/80 tracking-wider">MIC GAIN</label>
+        <input type="range" min="0" max="150" [value]="micVolume() * 100" (input)="handleMicVolumeChange($event)" class="w-full">
+      </div>
+
+      <!-- PTT Button Container -->
+      <div class="relative flex items-center justify-center">
+        <button 
+          id="talkButton"
+          class="w-24 h-24 rounded-full bg-zinc-700 text-amber-100 text-2xl font-bold shadow-lg border-b-[0.5rem] border-zinc-900 active:border-b-[0.125rem] active:mt-[0.375rem] transition-all duration-100 ease-in-out focus:outline-none focus:ring-4 focus:ring-amber-500/50 disabled:bg-zinc-600 disabled:cursor-not-allowed select-none"
+          [class.bg-red-700]="isRecording()"
+          [class.border-red-900]="isRecording()"
+          [class.text-white]="isRecording()"
+          [disabled]="!isAudioInitialized() && talkButtonText() !== 'PTT' && talkButtonText() !== 'RETRY'"
+          (mousedown)="handleTalkPress($event)"
+          (mouseup)="handleTalkRelease()"
+          (mouseleave)="handleTalkRelease()"
+          (touchstart)="handleTalkPress($event)"
+          (touchend)="handleTalkRelease()"
+          (touchcancel)="handleTalkRelease()">
+          {{ talkButtonText() }}
+        </button>
+      </div>
+
+      <!-- Output Volume -->
+      <div class="flex flex-col items-center justify-end gap-2">
+        <div class="vu-meter mb-1">
+          <div class="vu-meter-needle" [style.transform]="outputVuRotation()"></div>
+        </div>
+        <label class="text-xs font-bold text-amber-300/80 tracking-wider">OUTPUT VOL</label>
+        <input type="range" min="0" max="100" [value]="outputVolume() * 100" (input)="handleOutputVolumeChange($event)" class="w-full">
+      </div>
+    </footer>
+
+  </div>
+</div>
+--- END OF FILE src/app.component.html ---
+
+--- START OF FILE src/services/audio.service.ts ---
+
+import { Injectable, signal, WritableSignal } from '@angular/core';
+
+@Injectable({ providedIn: 'root' })
+export class AudioService {
+  isInitialized = signal(false);
+  micAnalyserNode: WritableSignal<AnalyserNode | null> = signal(null);
+  outputAnalyserNode: WritableSignal<AnalyserNode | null> = signal(null);
+  audioData = signal<string | null>(null);
+
+  private stream: MediaStream | null = null;
+  private audioContext: AudioContext | null = null;
+  private scriptProcessor: ScriptProcessorNode | null = null;
+  private isCurrentlyRecording = false;
+  private micGainNode: GainNode | null = null;
+  private outputGainNode: GainNode | null = null;
+
+  async initialize(): Promise<boolean> {
+    if (this.isInitialized()) return true;
+
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+      
+      const source = this.audioContext.createMediaStreamSource(this.stream);
+      this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
+      
+      const micAnalyser = this.audioContext.createAnalyser();
+      micAnalyser.fftSize = 256;
+      this.micAnalyserNode.set(micAnalyser);
+
+      const outputAnalyser = this.audioContext.createAnalyser();
+      outputAnalyser.fftSize = 256;
+      this.outputAnalyserNode.set(outputAnalyser);
+
+      this.scriptProcessor.onaudioprocess = (event) => this.processAudio(event);
+
+      // Create and configure Gain nodes
+      this.micGainNode = this.audioContext.createGain();
+      this.outputGainNode = this.audioContext.createGain();
+      
+      const muteNode = this.audioContext.createGain();
+      muteNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+
+      // Connect recording path: source -> micGain -> micAnalyser -> scriptProcessor -> mute -> destination
+      source.connect(this.micGainNode);
+      this.micGainNode.connect(micAnalyser);
+      micAnalyser.connect(this.scriptProcessor);
+      this.scriptProcessor.connect(muteNode);
+      muteNode.connect(this.audioContext.destination);
+
+      // Connect playback path: outputGain -> outputAnalyser -> destination
+      this.outputGainNode.connect(outputAnalyser);
+      outputAnalyser.connect(this.audioContext.destination);
+
+      this.isInitialized.set(true);
+      return true;
+    } catch (error) {
+      console.error('Audio initialization failed:', error);
+      this.isInitialized.set(false);
+      return false;
+    }
+  }
+
+  startRecording() {
+    if (!this.isInitialized() || !this.audioContext) return;
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
+    }
+    this.isCurrentlyRecording = true;
+  }
+
+  stopRecording() {
+    this.isCurrentlyRecording = false;
+  }
+  
+  setMicrophoneGain(level: number) {
+    if (this.micGainNode) {
+      this.micGainNode.gain.setValueAtTime(level, this.audioContext?.currentTime ?? 0);
+    }
+  }
+
+  setOutputVolume(level: number) {
+    if (this.outputGainNode) {
+      this.outputGainNode.gain.setValueAtTime(level, this.audioContext?.currentTime ?? 0);
+    }
+  }
+
+  async playPcmChunks(base64Chunks: string[]): Promise<void> {
+    if (!this.audioContext || !this.outputGainNode || base64Chunks.length === 0) return;
+
+    if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+    }
+
+    const decodedByteArrays = base64Chunks.map(chunk => this.decodeBase64(chunk));
+    const totalLength = decodedByteArrays.reduce((acc, val) => acc + val.length, 0);
+    const combinedBytes = new Uint8Array(totalLength);
+
+    let offset = 0;
+    for (const bytes of decodedByteArrays) {
+        combinedBytes.set(bytes, offset);
+        offset += bytes.length;
+    }
+
+    const audioBuffer = await this.decodePcmData(combinedBytes, this.audioContext, 16000, 1);
+    
+    if (audioBuffer.duration === 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        const source = this.audioContext!.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(this.outputGainNode!);
+        source.start();
+        source.onended = () => resolve();
+    });
+  }
+
+  private processAudio(event: AudioProcessingEvent) {
+    if (!this.isCurrentlyRecording) return;
+    const inputData = event.inputBuffer.getChannelData(0);
+    const pcmBlob = this.createPcmBlob(inputData);
+    this.audioData.set(pcmBlob.data);
+    setTimeout(() => this.audioData.set(null), 0);
+  }
+
+  private createPcmBlob(data: Float32Array): { data: string; mimeType: string } {
+    const l = data.length;
+    const int16 = new Int16Array(l);
+    for (let i = 0; i < l; i++) {
+      int16[i] = data[i] * 32768;
+    }
+    return {
+      data: this.encodeToBase64(new Uint8Array(int16.buffer)),
+      mimeType: 'audio/pcm;rate=16000',
+    };
+  }
+
+  private encodeToBase64(bytes: Uint8Array): string {
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+  
+  private decodeBase64(base64: string): Uint8Array {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  }
+  
+  private async decodePcmData(data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> {
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+  
+    for (let channel = 0; channel < numChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < frameCount; i++) {
+        channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+      }
+    }
+    return buffer;
+  }
+}
+--- END OF FILE src/services/audio.service.ts ---
+
+--- START OF FILE src/services/spixi.service.ts ---
+
+import { Injectable, signal, WritableSignal } from '@angular/core';
+
+declare var SpixiAppSdk: {
+  _isTestEnv: boolean;
+  fireOnLoad: () => void;
+  sendNetworkData: (data: string) => void;
+  onInit: (sessionId: string, userAddresses: string[]) => void;
+  onNetworkData: (senderAddress: string, data: string) => void;
+};
+
+export interface SpixiInitData {
+  sessionId: string;
+  userAddresses: string[];
+}
+
+export interface SpixiNetworkData {
+  senderAddress: string;
+  data: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class SpixiService {
+  initData: WritableSignal<SpixiInitData | null> = signal(null);
+  networkData: WritableSignal<SpixiNetworkData | null> = signal(null);
+
+  constructor() {}
+
+  initialize() {
+    if (typeof SpixiAppSdk === 'undefined') {
+      console.warn('SpixiAppSdk not found. Running in a limited environment.');
+      return;
+    }
+
+    SpixiAppSdk.onInit = (sessionId: string, userAddresses: string[]) => {
+      this.initData.set({ sessionId, userAddresses });
+    };
+
+    SpixiAppSdk.onNetworkData = (senderAddress: string, data: string) => {
+      this.networkData.set({ senderAddress, data });
+      this.networkData.set(null); // Reset to allow subsequent same values to trigger effects
+    };
+    
+    SpixiAppSdk.fireOnLoad();
+  }
+
+  sendNetworkData(data: string) {
+    if (typeof SpixiAppSdk !== 'undefined' && SpixiAppSdk.sendNetworkData) {
+      SpixiAppSdk.sendNetworkData(data);
+    }
+  }
+}
+--- END OF FILE src/services/spixi.service.ts ---
+
+--- START OF FILE src/services/whiteboard.service.ts ---
+
+import { Injectable, signal } from '@angular/core';
+
+@Injectable({ providedIn: 'root' })
+export class WhiteboardService {
+  
+  // Data from network to be drawn on canvas
+  incomingDrawData = signal<string | null>(null);
+  
+  // Data from canvas to be sent to network
+  outgoingDrawData = signal<string | null>(null);
+
+  // Command signals for actions - use a number to represent an event trigger
+  clearCommand = signal<number>(0);
+  undoCommand = signal<number>(0);
+  redoCommand = signal<number>(0);
+
+  // State signals for UI
+  canUndo = signal<boolean>(false);
+  canRedo = signal<boolean>(false);
+
+
+  processIncomingData(data: string) {
+    this.incomingDrawData.set(data);
+    this.incomingDrawData.set(null);
+  }
+  
+  sendDrawData(data: string) {
+    this.outgoingDrawData.set(data);
+    this.outgoingDrawData.set(null);
+  }
+
+  clear() {
+    this.clearCommand.update(c => c + 1);
+  }
+
+  undo() {
+    this.undoCommand.update(c => c + 1);
+  }
+
+  redo() {
+    this.redoCommand.update(c => c + 1);
+  }
+}
+--- END OF FILE src/services/whiteboard.service.ts ---
+
+--- START OF FILE src/components/whiteboard/whiteboard.component.ts ---
+
+import { Component, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewInit, inject, OnDestroy, effect, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { WhiteboardService } from '../../services/whiteboard.service';
+
+interface Point {
+  x: number;
+  y: number;
+}
+interface DrawAction {
+  id: string;
+  color: string;
+  size: number;
+  points: Point[];
+}
+type WhiteboardNetworkAction = 
+    | { type: 'stroke'; payload: DrawAction }
+    | { type: 'undo' }
+    | { type: 'redo' }
+    | { type: 'clear' };
+
+
+@Component({
+  selector: 'app-whiteboard',
+  standalone: true,
+  imports: [CommonModule],
+  template: `<canvas #whiteboardCanvas class="touch-none cursor-crosshair"></canvas>`,
+  styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+  `],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class WhiteboardComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('whiteboardCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  
+  color = input.required<string>();
+  size = input.required<number>();
+
+  private whiteboardService = inject(WhiteboardService);
+  private ctx!: CanvasRenderingContext2D;
+  private isDrawing = false;
+  
+  private history: DrawAction[] = [];
+  private redoStack: DrawAction[] = [];
+  private currentStroke: DrawAction | null = null;
+
+
+  constructor() {
+    // Effect for handling incoming network data
+    effect(() => {
+        const data = this.whiteboardService.incomingDrawData();
+        if(data) {
+            this.handleIncomingData(data);
+        }
+    });
+    
+    // Effects for handling local UI commands
+    effect(() => {
+        // This effect runs when the command signal changes.
+        // We check if the value is > 0 to ensure it's a command,
+        // and not the initial state.
+        if (this.whiteboardService.clearCommand() > 0) {
+            this.handleClear();
+        }
+    });
+    effect(() => {
+        if (this.whiteboardService.undoCommand() > 0) {
+            this.handleUndo();
+        }
+    });
+    effect(() => {
+        if (this.whiteboardService.redoCommand() > 0) {
+            this.handleRedo();
+        }
+    });
+  }
+
+  ngAfterViewInit() {
+    this.ctx = this.canvasRef.nativeElement.getContext('2d')!;
+    this.resizeCanvas();
+    
+    window.addEventListener('resize', this.resizeCanvas);
+    
+    const canvas = this.canvasRef.nativeElement;
+    canvas.addEventListener('mousedown', this.onMouseDown);
+    canvas.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
+    canvas.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    window.addEventListener('touchend', this.onMouseUp);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.resizeCanvas);
+    const canvas = this.canvasRef.nativeElement;
+    canvas.removeEventListener('mousedown', this.onMouseDown);
+    canvas.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mouseup', this.onMouseUp);
+    canvas.removeEventListener('touchstart', this.onTouchStart);
+    canvas.removeEventListener('touchmove', this.onTouchMove);
+    window.removeEventListener('touchend', this.onMouseUp);
+  }
+
+  public getHistoryState(): string {
+    return JSON.stringify(this.history);
+  }
+
+  public loadHistoryState(state: string) {
+    try {
+      const history = JSON.parse(state) as DrawAction[];
+      if (Array.isArray(history)) {
+        this.history = history;
+        this.redoStack = [];
+        this.redrawCanvas();
+        this.updateServiceState();
+      }
+    } catch (e) {
+      console.error('Failed to load whiteboard history state.', e);
+    }
+  }
+
+  private handleIncomingData(data: string) {
+    if (data === "reset") { // For backward compatibility if needed
+      this.clearHistoryAndCanvas();
+      return;
+    }
+    try {
+      const action = JSON.parse(data) as WhiteboardNetworkAction;
+      switch(action.type) {
+        case 'stroke':
+          this.history.push(action.payload);
+          this.redoStack = []; // New action clears redo stack
+          this.redrawCanvas();
+          break;
+        case 'undo':
+          if (this.history.length > 0) {
+            this.redoStack.push(this.history.pop()!);
+            this.redrawCanvas();
+          }
+          break;
+        case 'redo':
+          if (this.redoStack.length > 0) {
+            this.history.push(this.redoStack.pop()!);
+            this.redrawCanvas();
+          }
+          break;
+        case 'clear':
+          this.clearHistoryAndCanvas();
+          break;
+      }
+      this.updateServiceState();
+    } catch(e) {
+      console.error("Could not parse whiteboard data", e);
+    }
+  }
+
+  private onMouseDown = (e: MouseEvent) => {
+    this.isDrawing = true;
+    this.redoStack = [];
+    this.currentStroke = {
+        id: `${Date.now()}-${Math.random()}`,
+        color: this.color(),
+        size: this.size(),
+        points: []
+    };
+    this.onMouseMove(e);
+  };
+
+  private onMouseUp = () => {
+    if (!this.isDrawing || !this.currentStroke || this.currentStroke.points.length === 0) {
+        this.isDrawing = false;
+        return;
+    };
+    this.isDrawing = false;
+
+    // Add to local history and send to network
+    this.history.push(this.currentStroke);
+    this.sendAction({ type: 'stroke', payload: this.currentStroke });
+    this.currentStroke = null;
+    this.updateServiceState();
+  };
+
+  private onMouseMove = (e: MouseEvent) => {
+    if (this.isDrawing) {
+      const pos = this.getMousePos(e, this.canvasRef.nativeElement);
+      if (pos && this.currentStroke) {
+        const point = { x: pos[0], y: pos[1] };
+        this.currentStroke.points.push(point);
+        this.redrawCanvas();
+      }
+    }
+  };
+  
+  private onTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    this.isDrawing = true;
+     this.redoStack = [];
+    this.currentStroke = {
+        id: `${Date.now()}-${Math.random()}`,
+        color: this.color(),
+        size: this.size(),
+        points: []
+    };
+    this.onTouchMove(e);
+  };
+  
+  private onTouchMove = (e: TouchEvent) => {
+    e.preventDefault();
+    if (this.isDrawing) {
+      const pos = this.getTouchPos(e, this.canvasRef.nativeElement);
+      if(pos && this.currentStroke) {
+        const point = { x: pos[0], y: pos[1] };
+        this.currentStroke.points.push(point);
+        this.redrawCanvas(); // Redraw everything to show current stroke
+      }
+    }
+  };
+
+  private handleUndo() {
+    if (this.history.length > 0) {
+        this.redoStack.push(this.history.pop()!);
+        this.redrawCanvas();
+        this.sendAction({ type: 'undo' });
+        this.updateServiceState();
+    }
+  }
+
+  private handleRedo() {
+      if (this.redoStack.length > 0) {
+          this.history.push(this.redoStack.pop()!);
+          this.redrawCanvas();
+          this.sendAction({ type: 'redo' });
+          this.updateServiceState();
+      }
+  }
+
+  private handleClear() {
+      this.clearHistoryAndCanvas();
+      this.sendAction({ type: 'clear' });
+  }
+
+  private sendAction(action: WhiteboardNetworkAction) {
+    this.whiteboardService.sendDrawData(JSON.stringify(action));
+  }
+
+  private updateServiceState() {
+    this.whiteboardService.canUndo.set(this.history.length > 0);
+    this.whiteboardService.canRedo.set(this.redoStack.length > 0);
+  }
+  
+  private redrawCanvas() {
+    const canvas = this.canvasRef.nativeElement;
+    // Get the coordinate system size, not the CSS size.
+    const { width, height } = canvas; 
+    const dpr = window.devicePixelRatio || 1;
+    // Clear using device pixels, not CSS pixels
+    this.ctx.clearRect(0, 0, width, height);
+
+    this.history.forEach(stroke => this.drawStroke(stroke));
+    if (this.isDrawing && this.currentStroke) {
+        this.drawStroke(this.currentStroke);
+    }
+  }
+  
+  private drawStroke(stroke: DrawAction) {
+    if (!this.ctx || stroke.points.length === 0) return;
+    this.ctx.strokeStyle = stroke.color;
+    this.ctx.fillStyle = stroke.color;
+    this.ctx.lineWidth = stroke.size;
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    for (let i = 1; i < stroke.points.length; i++) {
+      this.ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+    }
+    this.ctx.stroke();
+  }
+
+  private clearHistoryAndCanvas = () => {
+    this.ctx.clearRect(0, 0, this.canvasRef.nativeElement.width, this.canvasRef.nativeElement.height);
+    this.history = [];
+    this.redoStack = [];
+    this.updateServiceState();
+  };
+
+  private resizeCanvas = () => {
+    const canvas = this.canvasRef.nativeElement;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    // Set the canvas size based on its display size and device pixel ratio
+    // to ensure the drawing buffer is sharp on high-DPI screens.
+    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
+      // When canvas size is set, the context is reset.
+      // We need to scale the context for high-DPI displays so we can
+      // continue to use CSS pixels for our coordinates.
+      this.ctx.scale(dpr, dpr);
+    }
+    
+    // Always redraw after a resize to apply the new dimensions.
+    this.redrawCanvas();
+  };
+
+  private getMousePos(e: MouseEvent, canvas: HTMLCanvasElement): [number, number] | null {
+    const rect = canvas.getBoundingClientRect();
+    return [e.clientX - rect.left, e.clientY - rect.top];
+  }
+
+  private getTouchPos(e: TouchEvent, canvas: HTMLCanvasElement): [number, number] | null {
+    if (!e.touches || e.touches.length !== 1) return null;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    return [touch.clientX - rect.left, touch.clientY - rect.top];
+  }
+}
+--- END OF FILE src/components/whiteboard/whiteboard.component.ts ---
+
+--- START OF FILE src/components/paint-tools/paint-tools.component.ts ---
+
+import { Component, ChangeDetectionStrategy, output, input, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-paint-tools',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 p-2 bg-black/30 rounded">
+      <!-- Colors -->
+      <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+        @for (c of colors(); track c) {
+          <button
+            (click)="selectColor(c)"
+            class="w-8 h-8 rounded-md transition-all ring-offset-2 ring-offset-zinc-800 active:scale-90 border-2 border-transparent"
+            [style.background-color]="c"
+            [class.ring-2]="color() === c"
+            [class.ring-amber-400]="color() === c">
+          </button>
+        }
+      </div>
+
+      <!-- Brush Sizes -->
+      <div class="flex items-center gap-2 flex-shrink-0 bg-black/30 p-1 rounded-md">
+        @for (s of brushSizes; track s) {
+          <button
+            (click)="selectSize(s)"
+            class="w-9 h-9 rounded-md flex items-center justify-center font-bold text-lg transition-all active:scale-90"
+            [class.bg-amber-500]="size() === s"
+            [class.text-zinc-900]="size() === s"
+            [class.bg-zinc-700]="size() !== s"
+            [class.text-amber-100]="size() !== s"
+            [class.hover:bg-zinc-600]="size() !== s">
+            {{ s }}
+          </button>
+        }
+      </div>
+    </div>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class PaintToolsComponent {
+  color = input('#FFFFFF');
+  size = input(4);
+  isNightMode = input(false);
+
+  colorChange = output<string>();
+  sizeChange = output<number>();
+
+  private readonly defaultColors = ['#FFFFFF', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#0a84ff', '#5e5ce6', '#bf5af2'];
+  private readonly nightModeColors = ['#ff453a'];
+
+  colors = computed(() => this.isNightMode() ? this.nightModeColors : this.defaultColors);
+  
+  brushSizes = [2, 4, 8];
+
+  selectColor(color: string) {
+    this.colorChange.emit(color);
+  }
+
+  selectSize(size: number) {
+    this.sizeChange.emit(size);
+  }
+}
+--- END OF FILE src/components/paint-tools/paint-tools.component.ts ---
+
+--- START OF FILE src/app.component.css ---
+
+--- END OF FILE src/app.component.css ---
+
+--- START OF FILE src/main.ts ---
+
+import '@angular/compiler';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideZonelessChangeDetection } from '@angular/core';
+
+import { AppComponent } from './app.component';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideZonelessChangeDetection()
+  ]
+}).catch(err => console.error(err));
+--- END OF FILE src/main.ts ---
