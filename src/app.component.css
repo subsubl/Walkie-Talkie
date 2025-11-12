@@ -1,0 +1,319 @@
+:host {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Custom styles for LED status indicator */
+.led-green {
+    background-color: #22c55e; /* green-500 */
+    box-shadow: 0 0 0.75rem 0.1875rem #22c55e80;
+}
+.led-amber {
+    background-color: #f59e0b; /* amber-500 */
+    box-shadow: 0 0 0.75rem 0.1875rem #f59e0b80;
+}
+.led-blue {
+    background-color: #0ea5e9; /* sky-500 */
+    box-shadow: 0 0 0.75rem 0.1875rem #0ea5e980;
+}
+.led-off {
+    background-color: #52525b; /* zinc-600 */
+    box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.7);
+}
+
+/* Custom styles for Analog VU Meter */
+.vu-meter {
+  width: 6rem; /* 96px */
+  height: 3rem; /* 48px */
+  background: conic-gradient(from 135deg at 50% 100%, #166534 0%, #22c55e 15%, #facc15 50%, #ef4444 85%, #b91c1c 100%);
+  border-top-left-radius: 3rem;
+  border-top-right-radius: 3rem;
+  position: relative;
+  border-style: solid;
+  border-color: #52525b; /* zinc-600 */
+  border-width: 0.125rem; /* 2px */
+  border-bottom-width: 0;
+  box-shadow: inset 0 0.125rem 0.25rem rgba(0,0,0,0.5);
+  overflow: hidden; /* Hide bottom of needle and pivot */
+}
+
+.vu-meter::before { /* Mask to create the arc */
+  content: '';
+  position: absolute;
+  z-index: 1; 
+  background: #3f3f46; /* zinc-700 from parent container */
+  bottom: 0;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: 0.5rem;
+  border-top-left-radius: 2.5rem;
+  border-top-right-radius: 2.5rem;
+}
+
+.vu-meter-needle {
+  position: absolute;
+  bottom: -0.125rem; /* -2px */
+  left: 50%;
+  margin-left: -0.0625rem; /* -1px, half of width */
+  width: 0.125rem; /* 2px */
+  height: 2.75rem; /* 44px */
+  background-color: #fca5a5; /* red-300 */
+  transform-origin: bottom center;
+  transition: transform 75ms linear;
+  border-radius: 0.125rem 0.125rem 0 0; /* 2px */
+  z-index: 3;
+  box-shadow: 0 0 0.5rem #ef4444; /* 8px */
+}
+
+.vu-meter::after { /* Pivot point */
+  content: '';
+  position: absolute;
+  bottom: -0.3125rem; /* -5px */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.625rem; /* 10px */
+  height: 0.625rem; /* 10px */
+  background: #18181b;
+  border-radius: 50%;
+  border: 0.0625rem solid #71717a; /* 1px zinc-500 */
+  z-index: 2;
+}
+
+
+/* Custom styles for range inputs to look like console sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Remove default focus styles */
+input[type="range"]:focus {
+  outline: none;
+}
+
+/***** Chrome, Safari, Opera, and Edge Chromium styles *****/
+/* Track */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #18181b; /* zinc-900 */
+  height: 0.75rem;
+  border-radius: 0.125rem; /* 2px */
+  border: 0.0625rem solid #000; /* 1px */
+}
+
+/* Thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -0.375rem; /* -6px, position thumb centrally */
+  background-color: #a1a1aa; /* zinc-400 */
+  height: 1.375rem; /* 22px */
+  width: 0.75rem; /* 12px */
+  border-radius: 0.1875rem; /* 3px */
+  border: 0.125rem solid #52525b; /* 2px zinc-600 */
+  transition: background-color 0.15s ease-in-out;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  outline-style: solid;
+  outline-color: #f59e0b; /* amber-500 */
+  outline-width: 0.1875rem; /* 3px */
+  outline-offset: 0.125rem; /* 2px */
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+    background-color: #d4d4d8; /* zinc-300 */
+}
+
+
+/***** Firefox styles *****/
+/* Track */
+input[type="range"]::-moz-range-track {
+  background: #18181b; /* zinc-900 */
+  height: 0.75rem;
+  border-radius: 0.125rem; /* 2px */
+  border: 0.0625rem solid #000; /* 1px */
+}
+
+/* Thumb */
+input[type="range"]::-moz-range-thumb {
+  border: none; /* Remove default border */
+  background-color: #a1a1aa; /* zinc-400 */
+  height: 1.375rem; /* 22px */
+  width: 0.75rem; /* 12px */
+  border-radius: 0.1875rem; /* 3px */
+  border: 0.125rem solid #52525b; /* 2px zinc-600 */
+  transition: background-color 0.15s ease-in-out;
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  outline-style: solid;
+  outline-color: #f59e0b; /* amber-500 */
+  outline-width: 0.1875rem; /* 3px */
+  outline-offset: 0.125rem; /* 2px */
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+    background-color: #d4d4d8; /* zinc-300 */
+}
+
+/* --- Night Mode --- */
+.night-mode.bg-zinc-800 {
+    background-color: #0c0a09; /* zinc-950 */
+    border-color: #450a0a; /* red-950 */
+}
+.night-mode .bg-black\/30 {
+    background-color: rgba(20, 0, 0, 0.4);
+}
+.night-mode .bg-zinc-900\/50 {
+    background-color: rgba(20, 0, 0, 0.6);
+}
+.night-mode .border-black\/30 {
+    border-color: rgba(127, 29, 29, 0.5); /* red-900 */
+}
+
+/* Text Colors */
+.night-mode .text-amber-100,
+.night-mode .text-amber-200,
+.night-mode .text-red-300 {
+    color: #ef4444; /* red-500 */
+}
+.night-mode .text-amber-300\/80 {
+    color: rgba(248, 113, 113, 0.8); /* red-400 */
+}
+.night-mode .text-amber-400\/70 {
+    color: rgba(220, 38, 38, 0.7); /* red-600 */
+}
+.night-mode .text-amber-400,
+.night-mode .text-green-400 {
+    color: #f87171; /* red-400 */
+}
+
+/* LEDs */
+.night-mode .led-green {
+    background-color: #dc2626; /* red-600 */
+    box-shadow: 0 0 0.75rem 0.1875rem #dc262680;
+}
+.night-mode .led-amber {
+    background-color: #b91c1c; /* red-700 */
+    box-shadow: 0 0 0.75rem 0.1875rem #b91c1c80;
+}
+.night-mode .led-blue {
+    background-color: #f87171; /* red-400 */
+    box-shadow: 0 0 0.75rem 0.1875rem #f8717180;
+}
+.night-mode .led-off {
+    background-color: #450a0a; /* red-950 */
+    box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.9);
+}
+
+/* Controls */
+.night-mode .bg-zinc-700 {
+    background-color: #3f0909;
+}
+.night-mode .enabled\:hover\:bg-zinc-600:enabled:hover {
+    background-color: #5b0d0d;
+}
+.night-mode .ring-offset-zinc-800 {
+    --tw-ring-offset-color: #0c0a09;
+}
+.night-mode .after\:bg-zinc-300::after {
+    background-color: #7f1d1d; /* red-800 */
+}
+.night-mode .after\:border-zinc-900::after {
+    border-color: #450a0a; /* red-950 */
+}
+
+.night-mode .peer-checked\:bg-green-600:checked + div,
+.night-mode .peer-checked\:bg-red-700:checked + div {
+    background-color: #b91c1c; /* red-700 */
+}
+.night-mode .peer-focus\:ring-amber-500:focus + div,
+.night-mode .peer-focus\:ring-amber-500\/50:focus {
+    --tw-ring-color: #dc2626; /* red-600 */
+}
+
+/* CLR SCRN Button */
+.night-mode .border-red-900 {
+    border-color: #7f1d1d; /* red-800 */
+}
+.night-mode .hover\:bg-red-800:hover {
+    background-color: #991b1b; /* red-700 */
+}
+
+/* Whiteboard Overlay */
+.night-mode .bg-zinc-900\/80 {
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+/* VU Meter */
+.night-mode .vu-meter {
+    background: conic-gradient(from 135deg at 50% 100%, #450a0a 0%, #991b1b 15%, #ef4444 50%, #fca5a5 85%, #fee2e2 100%);
+    border-color: #450a0a;
+    box-shadow: inset 0 0.125rem 0.25rem rgba(0,0,0,0.8);
+}
+.night-mode .vu-meter::before {
+    background: #0c0a09;
+}
+.night-mode .vu-meter::after {
+    background: #000;
+    border-color: #7f1d1d;
+}
+
+/* PTT Button */
+.night-mode #talkButton {
+    border-color: #450a0a;
+}
+.night-mode #talkButton.bg-red-700 {
+    background-color: #dc2626; /* red-600 */
+}
+.night-mode #talkButton.border-red-900 {
+    border-color: #7f1d1d;
+}
+
+/* Sliders */
+.night-mode input[type="range"]::-webkit-slider-runnable-track {
+    background: #000;
+    border-color: #450a0a;
+}
+.night-mode input[type="range"]::-webkit-slider-thumb {
+    background-color: #b91c1c; /* red-700 */
+    border-color: #450a0a;
+}
+.night-mode input[type="range"]:hover::-webkit-slider-thumb {
+    background-color: #dc2626; /* red-600 */
+}
+.night-mode input[type="range"]:focus::-webkit-slider-thumb {
+    outline-color: #f87171; /* red-400 */
+}
+.night-mode input[type="range"]::-moz-range-track {
+    background: #000;
+    border-color: #450a0a;
+}
+.night-mode input[type="range"]::-moz-range-thumb {
+    background-color: #b91c1c; /* red-700 */
+    border-color: #450a0a;
+}
+.night-mode input[type="range"]:hover::-moz-range-thumb {
+    background-color: #dc2626; /* red-600 */
+}
+.night-mode input[type="range"]:focus::-moz-range-thumb {
+    outline-color: #f87171; /* red-400 */
+}
+
+/* Paint Tools */
+.night-mode .ring-amber-400 {
+    --tw-ring-color: #ef4444 !important; /* red-500 */
+}
+.night-mode .bg-amber-500 {
+    background-color: #ef4444; /* red-500 */
+}
+.night-mode .text-zinc-900 {
+    color: #fef2f2; /* red-50 */
+}
+.night-mode .hover\:bg-zinc-600:hover {
+    background-color: #5b0d0d;
+}

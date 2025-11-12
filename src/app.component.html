@@ -1,0 +1,155 @@
+<div class="flex items-center justify-center h-screen w-screen p-2 sm:p-4 bg-zinc-900 font-sans">
+  <!-- Radio Console -->
+  <div class="w-full max-w-lg h-full bg-zinc-800 rounded-lg shadow-2xl border-2 border-black/50 p-4 flex flex-col gap-4 overflow-hidden" [class.night-mode]="isNightMode()">
+    
+    <!-- Header Panel -->
+    <header class="flex-shrink-0 grid grid-cols-4 items-center gap-4 text-center bg-black/30 p-2 rounded">
+      <!-- Status -->
+      <div class="text-left">
+        <div class="text-xs text-amber-400/70 tracking-widest">STATUS</div>
+        <div id="appStatus" class="font-bold text-amber-200 truncate">{{ appStatus() }}</div>
+      </div>
+      
+      <!-- Peer LED -->
+      <div class="flex flex-col items-center">
+        <div class="text-xs text-amber-400/70 tracking-widest">PEER</div>
+        <div class="w-4 h-4 rounded-full mt-1 border-2 border-black/50 transition-all duration-300"
+             [class]="ledStatusClass()">
+        </div>
+      </div>
+
+      <!-- Playback LED -->
+      <div class="flex flex-col items-center">
+        <div class="text-xs text-amber-400/70 tracking-widest">RX</div>
+        <div class="w-4 h-4 rounded-full mt-1 border-2 border-black/50 transition-all duration-300"
+             [class]="playbackLedClass()">
+        </div>
+      </div>
+
+      <!-- Connection -->
+      <div class="text-right">
+        <div class="text-xs text-amber-400/70 tracking-widest">CONNECTION</div>
+        <div id="connectionStatus" class="font-bold" [class]="connectionStatusColor()">{{ connectionStatus() }}</div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col gap-4 overflow-hidden">
+      <!-- Top Controls & Screen Area -->
+      <div class="flex-grow flex flex-col gap-4">
+        <!-- Control Panel -->
+        <div class="flex-shrink-0 flex items-center justify-between gap-4 bg-zinc-900/50 p-2 rounded-md border border-black/30">
+          <!-- On-Air Toggle -->
+          <div class="flex items-center gap-3">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" [checked]="isOfflineMode()" (change)="toggleOfflineMode($event)">
+              <div class="w-14 h-7 bg-zinc-700 rounded-sm peer-focus:outline-none ring-2 ring-offset-2 ring-offset-zinc-800 ring-transparent peer-focus:ring-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-900 after:border-2 after:rounded-sm after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600 peer-checked:after:translate-x-full"></div>
+            </label>
+            <span class="text-sm font-bold text-amber-200">{{ isOfflineMode() ? 'OFF-AIR' : 'ON-AIR' }}</span>
+          </div>
+          
+          <!-- Right side Controls -->
+          <div class="flex items-center gap-4">
+              <!-- Night Mode Toggle -->
+              <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-amber-300/80 tracking-wider">NIGHT</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" class="sr-only peer" (change)="toggleNightMode($event)" [checked]="isNightMode()">
+                      <div class="w-10 h-5 bg-zinc-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.125rem] after:left-[0.125rem] after:bg-zinc-300 after:border-zinc-900 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-700"></div>
+                  </label>
+              </div>
+
+              <!-- Whiteboard Controls -->
+              <div class="flex items-center gap-2">
+                <button (click)="undoLastAction()" title="Undo" [disabled]="!whiteboardService.canUndo()" class="p-2 rounded-md bg-zinc-700 text-amber-100 enabled:hover:bg-zinc-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM5.293 8.293a1 1 0 0 1 1.414 0L10 11.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414z" clip-rule="evenodd" transform="rotate(90 10 10)"/>
+                    <path d="M8 3a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1z" transform="rotate(90 10 10)"/>
+                  </svg>
+                </button>
+                <button (click)="redoLastAction()" title="Redo" [disabled]="!whiteboardService.canRedo()" class="p-2 rounded-md bg-zinc-700 text-amber-100 enabled:hover:bg-zinc-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM5.293 8.293a1 1 0 0 1 1.414 0L10 11.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414z" clip-rule="evenodd" transform="rotate(-90 10 10)"/>
+                    <path d="M8 3a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1z" transform="rotate(-90 10 10)"/>
+                  </svg>
+                </button>
+                <button (click)="clearWhiteboard()" title="Clear Screen" class="px-3 py-1 flex items-center justify-center bg-zinc-700 border-b-4 border-red-900 rounded-md text-red-300 hover:bg-red-800 hover:border-red-900 hover:text-white transition-all active:border-b-0 active:mt-1 font-bold">
+                  CLR SCRN
+                </button>
+              </div>
+          </div>
+        </div>
+
+        <!-- "Screen" Bezel for Whiteboard -->
+        <div class="flex-grow relative bg-black/50 rounded-md p-2 border border-black/30">
+          <div class="relative w-full h-full overflow-hidden rounded-sm">
+            <app-whiteboard 
+                class="absolute inset-0 w-full h-full z-0"
+                [color]="brushColor()"
+                [size]="brushSize()">
+            </app-whiteboard>
+            @if (isWhiteboardDisabled()) {
+              <div class="absolute inset-0 z-10 flex items-center justify-center rounded-sm bg-zinc-900/80 backdrop-blur-sm">
+                <div class="text-center">
+                  <div class="text-lg font-bold text-amber-200">WAITING FOR PEER...</div>
+                  <div class="mt-1 text-xs tracking-widest text-amber-400/70">Whiteboard is enabled when another user joins.</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Paint Tools Module -->
+      <div class="flex-shrink-0 z-10">
+        <app-paint-tools
+            [color]="brushColor()"
+            [size]="brushSize()"
+            (colorChange)="handleColorChange($event)"
+            (sizeChange)="handleSizeChange($event)">
+        </app-paint-tools>
+      </div>
+    </main>
+
+    <!-- Bottom Controls Container -->
+    <footer class="flex-shrink-0 grid grid-cols-3 items-stretch justify-between gap-2 sm:gap-4 bg-zinc-900/50 p-2 rounded-md border border-black/30">
+      <!-- Mic Gain -->
+      <div class="flex flex-col items-center justify-end gap-2">
+        <div class="vu-meter mb-1">
+          <div class="vu-meter-needle" [style.transform]="micVuRotation()"></div>
+        </div>
+        <label class="text-xs font-bold text-amber-300/80 tracking-wider">MIC GAIN</label>
+        <input type="range" min="0" max="150" [value]="micVolume() * 100" (input)="handleMicVolumeChange($event)" class="w-full">
+      </div>
+
+      <!-- PTT Button Container -->
+      <div class="relative flex items-center justify-center">
+        <button 
+          id="talkButton"
+          class="w-24 h-24 rounded-full bg-zinc-700 text-amber-100 text-2xl font-bold shadow-lg border-b-[0.5rem] border-zinc-900 active:border-b-[0.125rem] active:mt-[0.375rem] transition-all duration-100 ease-in-out focus:outline-none focus:ring-4 focus:ring-amber-500/50 disabled:bg-zinc-600 disabled:cursor-not-allowed select-none"
+          [class.bg-red-700]="isRecording()"
+          [class.border-red-900]="isRecording()"
+          [class.text-white]="isRecording()"
+          [disabled]="!isAudioInitialized() && talkButtonText() !== 'PTT' && talkButtonText() !== 'RETRY'"
+          (mousedown)="handleTalkPress($event)"
+          (mouseup)="handleTalkRelease()"
+          (mouseleave)="handleTalkRelease()"
+          (touchstart)="handleTalkPress($event)"
+          (touchend)="handleTalkRelease()"
+          (touchcancel)="handleTalkRelease()">
+          {{ talkButtonText() }}
+        </button>
+      </div>
+
+      <!-- Output Volume -->
+      <div class="flex flex-col items-center justify-end gap-2">
+        <div class="vu-meter mb-1">
+          <div class="vu-meter-needle" [style.transform]="outputVuRotation()"></div>
+        </div>
+        <label class="text-xs font-bold text-amber-300/80 tracking-wider">OUTPUT VOL</label>
+        <input type="range" min="0" max="100" [value]="outputVolume() * 100" (input)="handleOutputVolumeChange($event)" class="w-full">
+      </div>
+    </footer>
+
+  </div>
+</div>

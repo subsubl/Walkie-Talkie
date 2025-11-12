@@ -1,0 +1,7 @@
+{
+  "name": "Angular Walkie-Talkie",
+  "description": "A real-time voice communication and collaborative whiteboard application built with Angular. Features push-to-talk, an audio visualizer, and a shared drawing canvas.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
