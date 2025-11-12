@@ -90,10 +90,17 @@
             </app-whiteboard>
             @if (isWhiteboardDisabled()) {
               <div class="absolute inset-0 z-10 flex items-center justify-center rounded-sm bg-zinc-900/80 backdrop-blur-sm">
-                <div class="text-center">
-                  <div class="text-lg font-bold text-amber-200">WAITING FOR PEER...</div>
-                  <div class="mt-1 text-xs tracking-widest text-amber-400/70">Whiteboard is enabled when another user joins.</div>
-                </div>
+                @if (isSyncingWhiteboard()) {
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-amber-200">SYNCING WHITEBOARD...</div>
+                    <div class="mt-1 text-xs tracking-widest text-amber-400/70">Loading existing drawing from peer.</div>
+                  </div>
+                } @else {
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-amber-200">WAITING FOR PEER...</div>
+                    <div class="mt-1 text-xs tracking-widest text-amber-400/70">Whiteboard is enabled when another user joins.</div>
+                  </div>
+                }
               </div>
             }
           </div>

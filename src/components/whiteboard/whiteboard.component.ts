@@ -108,6 +108,24 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('touchend', this.onMouseUp);
   }
 
+  public getHistoryState(): string {
+    return JSON.stringify(this.history);
+  }
+
+  public loadHistoryState(state: string) {
+    try {
+      const history = JSON.parse(state) as DrawAction[];
+      if (Array.isArray(history)) {
+        this.history = history;
+        this.redoStack = [];
+        this.redrawCanvas();
+        this.updateServiceState();
+      }
+    } catch (e) {
+      console.error('Failed to load whiteboard history state.', e);
+    }
+  }
+
   private handleIncomingData(data: string) {
     if (data === "reset") { // For backward compatibility if needed
       this.clearHistoryAndCanvas();

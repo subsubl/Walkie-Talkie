@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, effect, ElementRef, inject, OnInit, OnDestroy, WritableSignal, computed, PLATFORM_ID } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, effect, ElementRef, inject, OnInit, OnDestroy, WritableSignal, computed, PLATFORM_ID, viewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 import { WhiteboardComponent } from './components/whiteboard/whiteboard.component';
@@ -13,7 +13,6 @@ declare var SpixiAppSdk: any;
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, WhiteboardComponent, PaintToolsComponent]
@@ -30,6 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
   isAudioInitialized = signal(false);
   isPlayingAudio = signal(false);
   isOtherUserPresent = signal(false);
+  isSyncingWhiteboard = signal(false);
   talkButtonText = signal('PTT');
   
   brushColor = signal('#FFFFFF');
@@ -42,7 +42,10 @@ export class AppComponent implements OnInit, OnDestroy {
   micVudB = signal(-60);
   outputVudB = signal(-60);
 
-  isWhiteboardDisabled = computed(() => !this.isOfflineMode() && !this.isOtherUserPresent());
+  whiteboardComponent = viewChild.required(WhiteboardComponent);
+  private whiteboardHistoryRequested = false;
+
+  isWhiteboardDisabled = computed(() => this.isSyncingWhiteboard() || (!this.isOfflineMode() && !this.isOtherUserPresent()));
   connectionStatus = computed(() => this.isOfflineMode() ? 'OFF-AIR' : 'ON-AIR');
   connectionStatusColor = computed(() => this.isOfflineMode() ? 'text-amber-400' : 'text-green-400');
   ledStatusClass = computed(() => {
@@ -81,6 +84,20 @@ export class AppComponent implements OnInit, OnDestroy {
       const initData = this.spixiService.initData();
       if (initData) {
         this.appStatus.set('Ready');
+        // If we are not the first person in the room, request whiteboard history
+        if (initData.userAddresses.length > 1 && !this.whiteboardHistoryRequested) {
+          this.isSyncingWhiteboard.set(true);
+          this.whiteboardHistoryRequested = true;
+          this.spixiService.sendNetworkData('WHITEBOARD:GET_HISTORY');
+          
+          // Failsafe timeout in case no one responds
+          setTimeout(() => {
+              if (this.isSyncingWhiteboard()) {
+                  this.isSyncingWhiteboard.set(false);
+                  console.warn('Whiteboard sync timed out.');
+              }
+          }, 5000);
+        }
       }
     });
 
@@ -287,6 +304,15 @@ export class AppComponent implements OnInit, OnDestroy {
         this.presenceTimeout = setTimeout(() => {
             this.isOtherUserPresent.set(false);
         }, 5000); // Assume offline if no pong for 5 seconds
+    } else if (data === 'WHITEBOARD:GET_HISTORY') {
+        const historyState = this.whiteboardComponent().getHistoryState();
+        if (historyState) {
+            this.spixiService.sendNetworkData(`WHITEBOARD:HISTORY:${historyState}`);
+        }
+    } else if (data.startsWith('WHITEBOARD:HISTORY:')) {
+        const historyState = data.substring(19);
+        this.whiteboardComponent().loadHistoryState(historyState);
+        this.isSyncingWhiteboard.set(false);
     }
   }
 
