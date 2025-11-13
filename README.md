@@ -57,4 +57,3 @@ This application is built using modern web technologies and best practices:
     -   `audio.service.ts`: Handles all Web Audio API logic, including recording, playback, and analysis.
     -   `spixi.service.ts`: A wrapper for the Spixi SDK to handle all network communication.
     -   `whiteboard.service.ts`: Acts as a bridge between the main app component and the whiteboard, managing state like undo/redo availability and forwarding commands.
-
