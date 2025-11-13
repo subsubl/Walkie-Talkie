@@ -1,4 +1,4 @@
-# Angular Walkie-Talkie
+# Walkie-Talkie
 
 This is a real-time voice communication and collaborative whiteboard application built with the latest features of Angular. It simulates a classic walkie-talkie experience with push-to-talk functionality, audio visualization, and a shared drawing canvas, all running in a zoneless Angular environment.
 
